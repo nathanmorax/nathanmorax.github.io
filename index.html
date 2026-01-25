@@ -72,8 +72,8 @@
             height: 100vh;
             overflow-x: auto;
             overflow-y: hidden;
-            scroll-snap-type: x mandatory;
-            scroll-behavior: smooth;
+            scroll-snap-type: x proximity;
+            scroll-behavior: auto;
             padding-top: 90px;
         }
 
@@ -290,8 +290,8 @@
             display: flex;
             overflow-x: auto;
             overflow-y: hidden;
-            scroll-snap-type: x mandatory;
-            scroll-behavior: smooth;
+            scroll-snap-type: x proximity;
+            scroll-behavior: auto;
         }
 
         .modal-content::-webkit-scrollbar {
@@ -534,8 +534,6 @@
             <div class="project-year">2004</div>
         </div>
 
-    </div>
-
     <!-- Modal -->
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal-close" onclick="closeModal()">&times;</div>
@@ -667,17 +665,33 @@
             }
         });
 
-        // Mouse wheel horizontal scroll para el contenedor principal
+        // Mouse wheel/trackpad scroll horizontal para el contenedor principal
         scrollContainer.addEventListener('wheel', (e) => {
             e.preventDefault();
-            scrollContainer.scrollLeft += e.deltaY;
-        });
+            
+            // Usar deltaX si existe (scroll horizontal), sino usar deltaY (scroll vertical convertido)
+            const delta = e.deltaX !== 0 ? e.deltaX : e.deltaY;
+            
+            // Aplicar el scroll de manera fluida
+            scrollContainer.scrollBy({
+                left: delta,
+                behavior: 'auto'
+            });
+        }, { passive: false });
 
-        // Mouse wheel horizontal scroll en modal
+        // Mouse wheel/trackpad scroll horizontal en modal
         modalContent.addEventListener('wheel', (e) => {
             e.preventDefault();
-            modalContent.scrollLeft += e.deltaY;
-        });
+            
+            // Usar deltaX si existe (scroll horizontal), sino usar deltaY (scroll vertical convertido)
+            const delta = e.deltaX !== 0 ? e.deltaX : e.deltaY;
+            
+            // Aplicar el scroll de manera fluida
+            modalContent.scrollBy({
+                left: delta,
+                behavior: 'auto'
+            });
+        }, { passive: false });
 
         // Update current slide on scroll
         modalContent.addEventListener('scroll', () => {
