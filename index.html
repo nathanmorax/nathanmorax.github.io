@@ -55,7 +55,7 @@
         .nav {
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 4px;
             margin-top: 60px;
             margin-right: 120px;
         }
@@ -64,7 +64,7 @@
             color: #00000066;
             text-decoration: none;
             font-size: 14px;
-            font-weight: 100;
+            font-weight: 500;
             transition: color 0.3s;
             text-align: right;
         }
@@ -123,7 +123,7 @@
             border-radius: 8px;
             margin-bottom: 30px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            transition: all 0.3s ease;
+            transition: all 0.4s ease;
         }
         
         .project-slide:hover .project-slide-image {
@@ -131,23 +131,13 @@
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
         }
         
-        .project-slide::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 20%;
-            bottom: 20%;
-            width: 3px;
-            background: transparent;
-            transition: background 0.3s;
-        }
-        
-        .project-slide:hover::before {
-            background: linear-gradient(to bottom, transparent, #000, transparent);
+        .project-slide.clicking .project-slide-image {
+            transform: scale(1.1);
+            opacity: 0.8;
         }
         
         .project-slide:hover {
-            transform: scale(1.05);
+            transform: scale(1.03);
         }
         
         .project-title {
@@ -181,17 +171,22 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(30px);
+            background: rgba(255, 255, 255, 0);
+            backdrop-filter: blur(0px);
             z-index: 100;
-            display: none;
+            visibility: hidden;
             opacity: 0;
-            transition: opacity 0.5s ease;
+            pointer-events: none;
+            transition: opacity 0.4s ease, background 0.4s ease, backdrop-filter 0.4s ease, visibility 0s 0.4s;
         }
         
         .modal-overlay.active {
-            display: block;
+            visibility: visible;
             opacity: 1;
+            pointer-events: auto;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(30px);
+            transition: opacity 0.4s ease, background 0.4s ease, backdrop-filter 0.4s ease, visibility 0s 0s;
         }
         
         .modal-close {
@@ -251,6 +246,14 @@
             scroll-snap-align: center;
             padding: 100px 60px;
             text-align: center;
+            opacity: 0;
+            transform: scale(0.9) translateY(20px);
+            transition: opacity 0.5s ease 0.1s, transform 0.5s ease 0.1s;
+        }
+        
+        .modal-overlay.active .modal-slide {
+            opacity: 1;
+            transform: scale(1) translateY(0);
         }
         
         .modal-slide h2 {
@@ -446,7 +449,15 @@
             projects.forEach((project, index) => {
                 const slide = document.createElement('div');
                 slide.className = 'project-slide';
-                slide.onclick = () => openModal(index);
+                slide.onclick = (e) => {
+                    slide.classList.add('clicking');
+                    setTimeout(() => {
+                        openModal(index);
+                        setTimeout(() => {
+                            slide.classList.remove('clicking');
+                        }, 400);
+                    }, 150);
+                };
                 slide.innerHTML = `
                     <img src="${project.image}" alt="${project.title}" class="project-slide-image">
                 `;
