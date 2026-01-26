@@ -24,7 +24,7 @@
             top: 0;
             left: 0;
             right: 0;
-            padding: 30px 60px;
+            padding: 30px 0;  /* Quita el padding lateral */
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
@@ -33,9 +33,13 @@
             backdrop-filter: blur(10px);
         }
         
+        .header > div:first-child {
+            margin-left: 240px;  /* Logo 120px desde la izquierda */
+        }
+        
         .logo {
             font-size: 40px;
-            font-weight: 500;
+            font-weight: 300;
         }
         
         .project-name {
@@ -57,7 +61,7 @@
             flex-direction: column;
             gap: 4px;
             margin-top: 60px;
-            margin-right: 120px;
+            margin-right: 340px;  /* Nav 120px desde la derecha */
         }
         
         .nav a {
@@ -109,6 +113,7 @@
             flex-direction: column;
             justify-content: center;
             padding: 0 80px;
+            padding: 0 80px 0 160px;
             scroll-snap-align: start;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -367,7 +372,7 @@
                 role: "Interface Design",
                 company: "Facebook",
                 year: "2015",
-                image: "images/App1.png",
+                image: "images/App2.png",
                 team: ["Mark Zuckerberg", "Chris Cox", "Michael Reckhow", "Ben Langholz", "Sharon Matas", "Mike Matas"]
             },
             {
@@ -375,7 +380,7 @@
                 role: "Interface Design",
                 company: "Facebook",
                 year: "2015",
-                image: "images/App1.png",
+                image: "images/App2.png",
                 team: ["Mark Zuckerberg", "Chris Cox", "Michael Reckhow", "Brandon Walkin", "Joey Flynn", "Ben Langholz", "Sharon Matas", "Mike Matas"]
             },
             {
@@ -383,7 +388,7 @@
                 role: "Interface Design",
                 company: "Acquired by Google",
                 year: "2014",
-                image: "images/App1.png",
+                image: "images/App2.png",
                 team: ["Tony Fadell", "David Sloo", "Fred Bould", "Tom Crabtree", "Mike Matas"]
             },
             {
@@ -399,7 +404,7 @@
                 role: "Interface Design",
                 company: "Apple",
                 year: "2010",
-                image: "images/App1.png",
+                image: "images/App2.png",
                 team: ["Steve Jobs", "Scott Forstall", "Greg Christie", "Bas Ording", "Imran Chaudhri", "Steve Lemay", "Marcell Van Os", "Freddy Anzures", "Mike Matas"]
             },
             {
@@ -407,7 +412,7 @@
                 role: "Interface Design",
                 company: "Apple",
                 year: "2007",
-                image: "images/App1.png",
+                image: "images/App2.png",
                 team: ["Steve Jobs", "Scott Forstall", "Greg Christie", "Bas Ording", "Imran Chaudhri", "Steve Lemay", "Marcell Van Os", "Freddy Anzures", "Mike Matas"]
             },
             {
@@ -415,7 +420,7 @@
                 role: "Interface Design",
                 company: "Apple",
                 year: "2006",
-                image: "images/App1.png",
+                image: "images/App2.png",
                 team: ["Steve Jobs", "Scott Forstall", "Greg Christie", "Bas Ording", "Imran Chaudhri", "Marcell Van Os", "Mike Matas"]
             },
             {
@@ -423,7 +428,7 @@
                 role: "Founder",
                 company: "Delicious Monster",
                 year: "2004",
-                image: "images/App1.png",
+                image: "images/App2.png",
                 team: ["Wil Shipley", "Tim Omernick", "Drew Hamlin", "Scott Maier", "Jeff Rooney", "Mike Matas"]
             }
         ];
