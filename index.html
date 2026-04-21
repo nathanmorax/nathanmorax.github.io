@@ -4,548 +4,465 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nathan Mora</title>
+
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: #ffffff;
             color: #000;
             overflow: hidden;
             height: 100vh;
+            cursor: none;
         }
-        
+
+        *, *::before, *::after { cursor: none !important; }
+
+        .custom-cursor {
+            position: fixed; top: 0; left: 0;
+            width: 45px; height: 45px;
+            background: rgba(180, 180, 180, 0.35);
+            border-radius: 50%;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            transition: transform 0.08s ease-out, width 0.2s ease, height 0.2s ease;
+            z-index: 9999;
+            backdrop-filter: blur(6px);
+        }
+
         .header {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            padding: 30px 0;  /* Quita el padding lateral */
+            top: 0; left: 0; right: 0;
+            padding: 30px 0;
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
             z-index: 50;
             background: #ffffff;
-            backdrop-filter: blur(10px);
+            transition: opacity 0.4s ease;
         }
-        
-        .header > div:first-child {
-            margin-left: 240px;  /* Logo 120px desde la izquierda */
-        }
-        
-        .logo {
-            font-size: 40px;
-            font-weight: 300;
-        }
-        
+        .header > div:first-child { margin-left: 240px; }
+        .logo { font-size: 40px; font-weight: 300; }
         .project-name {
-            font-size: 20px;
-            font-weight: 400;
-            color: #999;
+            font-size: 20px; font-weight: 400; color: #999;
             margin-top: 8px;
             transition: opacity 0.3s ease;
-            opacity: 0;
-            min-height: 28px;
+            opacity: 0; min-height: 28px;
         }
-        
-        .project-name.visible {
-            opacity: 1;
-        }
-        
+        .project-name.visible { opacity: 1; }
+
         .nav {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            margin-top: 60px;
-            margin-right: 340px;  /* Nav 120px desde la derecha */
+            display: flex; flex-direction: column;
+            gap: 4px; margin-top: 60px; margin-right: 340px;
         }
-        
         .nav a {
-            color: #00000066;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 500;
-            transition: color 0.3s;
-            text-align: right;
+            color: #00000066; text-decoration: none;
+            font-size: 14px; font-weight: 500;
+            transition: color 0.3s; text-align: right;
         }
-        
-        .nav a:hover {
-            color: #000;
-        }
-        
+        .nav a:hover { color: #000; }
+
+        /* ======================= SCROLL-CONTAINER (la galería compartida) ======================= */
+
         .scroll-container {
             display: flex;
+            align-items: center;
             height: 100vh;
             overflow-x: scroll;
             overflow-y: hidden;
-            scroll-snap-type: x proximity;
-            scroll-behavior: auto;
             padding-top: 90px;
+            padding-left: 120px;
+            padding-right: 120px;
             -webkit-overflow-scrolling: touch;
+            white-space: nowrap;
+            scroll-behavior: auto; /* controlamos el scroll manualmente */
         }
-        
-        .scroll-container::-webkit-scrollbar {
-            height: 10px;
+        .scroll-container::-webkit-scrollbar { display: none; }
+
+        /* Cuando está en modo modal, la galería cambia comportamiento */
+        .scroll-container.is-modal {
+            scroll-snap-type: x mandatory;
+            padding-left: 0;
+            padding-right: 0;
         }
-        
-        .scroll-container::-webkit-scrollbar-track {
-            background: #f5f5f5;
-        }
-        
-        .scroll-container::-webkit-scrollbar-thumb {
-            background: #ddd;
-            border-radius: 5px;
-        }
-        
-        .scroll-container::-webkit-scrollbar-thumb:hover {
-            background: #ccc;
-        }
-        
+
+        /* ======================= PROJECT SLIDE (grilla normal) ======================= */
+
         .project-slide {
-            min-width: 800px;
-            max-width: 800px;
-            height: 100%;
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            cursor: pointer;
+            margin-right: 30px;
+            transition: margin 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .project-slide:hover .project-slide-image {
+            transform: scale(1.03);
+        }
+
+        .project-slide-image {
+            height: 62vh;
+            width: auto;
+            display: block;
+            border-radius: 8px;
+            transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+                        height 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+            will-change: transform, height;
+        }
+
+        /* ======================= MODO MODAL: slide expandido con info ======================= */
+
+        .scroll-container.is-modal .project-slide {
+            width: 100vw;
+            height: 100vh;
+            margin-right: 0;
+            scroll-snap-align: center;
+            justify-content: center;
+            gap: 80px;
+            padding: 0 10vw;
+        }
+
+        .scroll-container.is-modal .project-slide-image {
+            height: 75vh;
+            max-width: 50vw;
+        }
+
+        /* Info del proyecto (sólo visible en modo modal) */
+        .project-slide-info {
+            position: absolute;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            padding: 0 80px;
-            padding: 0 80px 0 160px;
-            scroll-snap-align: start;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-        
-        .project-slide-image {
-            width: 200%;
-            max-width: 700px;
-            height: 550px;
-           
-        }
-        
-        .project-slide:hover {
-            transform: scale(1.08);
-        }
-        
-        .project-slide.clicking {
-            transform: scale(1.1);
-        }
-        
-        .project-title {
-            font-size: 48px;
-            font-weight: 300;
-            margin-bottom: 15px;
-            letter-spacing: -1px;
-        }
-        
-        .project-role {
-            font-size: 16px;
-            color: #666;
-            margin-bottom: 8px;
-        }
-        
-        .project-company {
-            font-size: 14px;
-            color: #999;
-            margin-bottom: 30px;
-        }
-        
-        .project-year {
-            font-size: 13px;
-            color: #ccc;
-        }
-        
-        /* Modal Overlay */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0);
-            backdrop-filter: blur(0px);
-            z-index: 100;
-            visibility: hidden;
+            min-width: 240px;
+            max-width: 280px;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.4s ease, background 0.4s ease, backdrop-filter 0.4s ease, visibility 0s 0.4s;
+            transition: opacity 0.35s ease;
+            /* posición por defecto fuera de flujo */
+            left: 10vw;
+            top: 50%;
+            transform: translateY(-50%);
         }
-        
-        .modal-overlay.active {
-            visibility: visible;
+        .scroll-container.is-modal .project-slide-info {
             opacity: 1;
-            pointer-events: auto;
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(30px);
-            transition: opacity 0.4s ease, background 0.4s ease, backdrop-filter 0.4s ease, visibility 0s 0s;
+            transition-delay: 0.35s;
         }
-        
+
+        .project-slide-info h2 {
+            font-size: 22px; font-weight: 700;
+            margin-bottom: 8px; color: #000;
+        }
+        .project-slide-info .meta {
+            font-size: 16px; font-weight: 400;
+            color: #000; line-height: 1.4;
+        }
+        .project-slide-info .year {
+            font-size: 16px; color: #000; margin-top: 24px;
+        }
+        .project-slide-info .credits {
+            margin-top: 40px;
+            font-size: 14px; color: #999; line-height: 1.6;
+        }
+
+        /* ======================= FONDO BLANCO + CERRAR ======================= */
+
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: #ffffff;
+            z-index: 40; /* detrás de la galería pero sobre otro contenido */
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .modal-backdrop.active {
+            opacity: 1;
+        }
+
         .modal-close {
             position: fixed;
-            top: 40px;
-            right: 60px;
-            font-size: 40px;
-            color: #000;
-            cursor: pointer;
+            top: 40px; right: 60px;
+            font-size: 40px; color: #000;
             z-index: 110;
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.3s;
-        }
-        
-        .modal-close:hover {
-            transform: rotate(90deg);
-        }
-        
-        .modal-content {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            overflow-x: scroll;
-            overflow-y: hidden;
-            scroll-snap-type: x proximity;
-            scroll-behavior: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-        
-        .modal-content::-webkit-scrollbar {
-            height: 8px;
-        }
-        
-        .modal-content::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.05);
-        }
-        
-        .modal-content::-webkit-scrollbar-thumb {
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 4px;
-        }
-        
-        .modal-slide {
-            min-width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            scroll-snap-align: center;
-            padding: 100px 60px;
-            text-align: center;
             opacity: 0;
-            transform: scale(0.9) translateY(20px);
-            transition: opacity 0.5s ease 0.1s, transform 0.5s ease 0.1s;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            line-height: 1;
+            font-weight: 200;
+            cursor: pointer;
         }
-        
-        .modal-overlay.active .modal-slide {
+        .modal-close.visible {
             opacity: 1;
-            transform: scale(1) translateY(0);
+            pointer-events: auto;
         }
-        
-        .modal-slide h2 {
-            font-size: 72px;
-            font-weight: 300;
-            margin-bottom: 25px;
-            letter-spacing: -2px;
+
+        /* Cuando entramos en modal, subimos la galería sobre el backdrop */
+        .scroll-container.is-modal {
+            z-index: 60;
+            position: relative;
         }
-        
-        .modal-slide .role {
-            font-size: 22px;
-            color: #666;
-            margin-bottom: 12px;
+
+        /* Ocultamos header en modo modal */
+        body.modal-open .header {
+            opacity: 0;
+            pointer-events: none;
         }
-        
-        .modal-slide .company {
-            font-size: 18px;
-            color: #999;
-            margin-bottom: 40px;
-        }
-        
-        .project-image {
-            width: 100%;
-            max-width: 800px;
-            height: auto;
-            border-radius: 12px;
-            margin-bottom: 60px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-        }
-        
-        .team-label {
-            font-size: 12px;
-            color: #999;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 30px;
-        }
-        
-        .team-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            justify-content: center;
-            max-width: 700px;
-        }
-        
-        .team-member {
-            font-size: 14px;
-            color: #333;
-            padding: 10px 20px;
-            background: rgba(0, 0, 0, 0.03);
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            border-radius: 25px;
-            transition: all 0.3s;
-        }
-        
-        .team-member:hover {
-            background: rgba(0, 0, 0, 0.08);
-            border-color: rgba(0, 0, 0, 0.2);
-        }
-        
+
         @media (max-width: 768px) {
-            .header {
-                padding: 20px;
+            body { cursor: auto; }
+            .custom-cursor { display: none; }
+            .scroll-container.is-modal .project-slide {
+                flex-direction: column;
+                gap: 30px;
+                padding: 80px 20px 20px;
             }
-            
-            .nav {
-                margin-top: 20px;
-                gap: 15px;
-            }
-            
-            .project-slide {
-                min-width: 90vw;
+            .scroll-container.is-modal .project-slide-image {
                 max-width: 90vw;
-                padding: 0 40px;
-            }
-            
-            .project-title {
-                font-size: 32px;
-            }
-            
-            .modal-slide h2 {
-                font-size: 42px;
+                height: auto;
+                max-height: 60vh;
             }
         }
     </style>
 </head>
+
 <body>
+
+    <div class="custom-cursor"></div>
+
     <header class="header">
         <div>
             <div class="logo">Nathan Mora</div>
             <div class="project-name" id="projectName"></div>
         </div>
         <nav class="nav">
-            <a href="#about">Quién soy</a>
-            <a href="#twitter">LinkedIn</a>
-            <a href="#instagram">Correo</a>
+            <a href="#">Quién soy</a>
+            <a href="#">LinkedIn</a>
+            <a href="#">Correo</a>
         </nav>
     </header>
-    
+
+    <div class="modal-backdrop" id="modalBackdrop"></div>
     <div class="scroll-container" id="scrollContainer"></div>
-    
-    <!-- Modal -->
-    <div class="modal-overlay" id="modalOverlay">
-        <div class="modal-close" onclick="closeModal()">&times;</div>
-        <div class="modal-content" id="modalContent"></div>
-    </div>
-    
+    <div class="modal-close" id="modalClose" onclick="closeModal()">&times;</div>
+
     <script>
+        /* ---------- CURSOR ---------- */
+        const cursor = document.querySelector('.custom-cursor');
+
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.top = e.clientY + 'px';
+            cursor.style.left = e.clientX + 'px';
+        });
+
+        document.addEventListener('mouseover', (e) => {
+            if (e.target.closest('a, .project-slide, .modal-close')) {
+                cursor.style.transform = 'translate(-50%, -50%) scale(0.4)';
+            } else {
+                cursor.style.transform = 'translate(-50%, -50%) scale(1)';
+            }
+        });
+
+        document.addEventListener('mousedown', () => {
+            cursor.style.transform = 'translate(-50%, -50%) scale(0.8)';
+        });
+        document.addEventListener('mouseup', () => {
+            cursor.style.transform = 'translate(-50%, -50%) scale(1)';
+        });
+
+        /* ---------- DATA ---------- */
         const projects = [
-            {
-                title: "Lobe",
-                role: "Founder",
-                company: "Acquired by Microsoft",
-                year: "2020",
-                image: "images/App1.png",
-                team: ["Kevin Scott", "Bill Barnes", "Jake Cohen", "Adam Menges", "Markus Beissinger", "Zach Stiggelbout", "Ramon Gilabert", "Mike Matas"]
-            },
-            {
-                title: "Instant Articles",
-                role: "Interface Design",
-                company: "Facebook",
-                year: "2015",
-                image: "images/App2.png",
-                team: ["Mark Zuckerberg", "Chris Cox", "Michael Reckhow", "Ben Langholz", "Sharon Matas", "Mike Matas"]
-            },
-            {
-                title: "Paper",
-                role: "Interface Design",
-                company: "Facebook",
-                year: "2015",
-                image: "images/App2.png",
-                team: ["Mark Zuckerberg", "Chris Cox", "Michael Reckhow", "Brandon Walkin", "Joey Flynn", "Ben Langholz", "Sharon Matas", "Mike Matas"]
-            },
-            {
-                title: "Nest",
-                role: "Interface Design",
-                company: "Acquired by Google",
-                year: "2014",
-                image: "images/App2.png",
-                team: ["Tony Fadell", "David Sloo", "Fred Bould", "Tom Crabtree", "Mike Matas"]
-            },
-            {
-                title: "Push Pop Press",
-                role: "Founder",
-                company: "Acquired by Facebook",
-                year: "2011",
-                image: "images/App1.png",
-                team: ["Al Gore", "Charlie Melcher", "Duncan Bock", "Kimon Tsinteris", "Austin Sarner", "Bret Victor", "Mike Matas"]
-            },
-            {
-                title: "iPad Photos",
-                role: "Interface Design",
-                company: "Apple",
-                year: "2010",
-                image: "images/App2.png",
-                team: ["Steve Jobs", "Scott Forstall", "Greg Christie", "Bas Ording", "Imran Chaudhri", "Steve Lemay", "Marcell Van Os", "Freddy Anzures", "Mike Matas"]
-            },
-            {
-                title: "iPhone Maps",
-                role: "Interface Design",
-                company: "Apple",
-                year: "2007",
-                image: "images/App2.png",
-                team: ["Steve Jobs", "Scott Forstall", "Greg Christie", "Bas Ording", "Imran Chaudhri", "Steve Lemay", "Marcell Van Os", "Freddy Anzures", "Mike Matas"]
-            },
-            {
-                title: "Time Machine",
-                role: "Interface Design",
-                company: "Apple",
-                year: "2006",
-                image: "images/App2.png",
-                team: ["Steve Jobs", "Scott Forstall", "Greg Christie", "Bas Ording", "Imran Chaudhri", "Marcell Van Os", "Mike Matas"]
-            },
-            {
-                title: "Delicious Library",
-                role: "Founder",
-                company: "Delicious Monster",
-                year: "2004",
-                image: "images/App2.png",
-                team: ["Wil Shipley", "Tim Omernick", "Drew Hamlin", "Scott Maier", "Jeff Rooney", "Mike Matas"]
-            }
+            { title: "App 1", image: "images/App1.png", category: "Interface Design", client: "Cliente 1", year: "2024", team: ["Nathan Mora"] },
+            { title: "App 2", image: "images/App2.png", category: "Interface Design", client: "Cliente 2", year: "2024", team: ["Nathan Mora"] },
+            { title: "App 3", image: "images/App2.png", category: "Interface Design", client: "Cliente 3", year: "2024", team: ["Nathan Mora"] },
+            { title: "App 4", image: "images/App1.png", category: "Interface Design", client: "Cliente 4", year: "2024", team: ["Nathan Mora"] },
+            { title: "App 5", image: "images/App2.png", category: "Interface Design", client: "Cliente 5", year: "2024", team: ["Nathan Mora"] },
+            { title: "App 6", image: "images/App2.png", category: "Interface Design", client: "Cliente 6", year: "2024", team: ["Nathan Mora"] }
         ];
-        
-        let currentSlide = 0;
-        const modalContent = document.getElementById('modalContent');
-        const modalOverlay = document.getElementById('modalOverlay');
+
         const scrollContainer = document.getElementById('scrollContainer');
-        const projectName = document.getElementById('projectName');
-        
-        // Crear slides del home
-        function createHomeSlides() {
-            projects.forEach((project, index) => {
-                const slide = document.createElement('div');
-                slide.className = 'project-slide';
-                slide.onclick = (e) => {
-                    slide.classList.add('clicking');
-                    setTimeout(() => {
-                        openModal(index);
-                        setTimeout(() => {
-                            slide.classList.remove('clicking');
-                        }, 400);
-                    }, 150);
-                };
-                slide.innerHTML = `
-                    <img src="${project.image}" alt="${project.title}" class="project-slide-image">
-                `;
-                scrollContainer.appendChild(slide);
-            });
-        }
-        
-        // Función para actualizar el nombre del proyecto según el scroll
-        function updateLogo() {
-            const scrollLeft = scrollContainer.scrollLeft;
-            const slides = document.querySelectorAll('.project-slide');
-            
-            let currentIndex = 0;
-            
-            // Encontrar qué slide está al inicio del viewport (más a la izquierda visible)
-            slides.forEach((slide, index) => {
-                const slideLeft = slide.offsetLeft;
-                const slideRight = slideLeft + slide.offsetWidth;
-                
-                // Si el borde izquierdo del slide está dentro del viewport o antes
-                if (slideLeft <= scrollLeft + 100) {
-                    currentIndex = index;
-                }
-            });
-            
-            if (currentIndex >= 0 && currentIndex < projects.length) {
-                const newTitle = projects[currentIndex].title;
-                if (projectName.textContent !== newTitle) {
-                    projectName.classList.remove('visible');
-                    setTimeout(() => {
-                        projectName.textContent = newTitle;
-                        projectName.classList.add('visible');
-                    }, 150);
-                }
-            }
-        }
-        
-        // Escuchar el evento de scroll
-        scrollContainer.addEventListener('scroll', updateLogo);
-        
-        // Crear slides del modal
-        function createModalSlides() {
-            projects.forEach((project, index) => {
-                const slide = document.createElement('div');
-                slide.className = 'modal-slide';
-                slide.innerHTML = `
-                    <h2>${project.title}</h2>
-                    <div class="role">${project.role}</div>
-                    <div class="company">${project.company} · ${project.year}</div>
-                    <img src="${project.image}" alt="${project.title}" class="project-image">
-                    <div class="team-label">Team</div>
-                    <div class="team-grid">
-                        ${project.team.map(member => `<span class="team-member">${member}</span>`).join('')}
+        const modalBackdrop = document.getElementById('modalBackdrop');
+        const modalClose = document.getElementById('modalClose');
+
+        let isAnimating = false;
+        let isModalOpen = false;
+        const DURATION = 700; // ms, debe coincidir con CSS
+
+        /* ---------- RENDER GALERÍA (grilla compartida) ---------- */
+        projects.forEach((p, i) => {
+            const slide = document.createElement('div');
+            slide.className = 'project-slide';
+            slide.dataset.index = i;
+            slide.innerHTML = `
+                <div class="project-slide-info">
+                    <h2>${p.title}</h2>
+                    <div class="meta">${p.category}<br>${p.client}</div>
+                    <div class="year">${p.year}</div>
+                    <div class="credits">
+                        ${p.team.map(t => `<div>${t}</div>`).join('')}
                     </div>
-                `;
-                modalContent.appendChild(slide);
+                </div>
+                <img src="${p.image}" class="project-slide-image" alt="${p.title}">
+            `;
+            slide.onclick = () => {
+                if (!isModalOpen && !isAnimating) openModal(i, slide);
+            };
+            scrollContainer.appendChild(slide);
+        });
+
+        /* ---------- FLIP helpers ---------- */
+
+        /* Toma una "foto" de cada imagen: su rect actual */
+        function snapshotSlides() {
+            const slides = scrollContainer.querySelectorAll('.project-slide');
+            const snapshots = [];
+            slides.forEach(s => {
+                const img = s.querySelector('.project-slide-image');
+                snapshots.push({
+                    slide: s,
+                    img,
+                    rect: img.getBoundingClientRect()
+                });
             });
+            return snapshots;
         }
-        
-        function openModal(index) {
-            currentSlide = index;
-            modalOverlay.classList.add('active');
-            document.body.style.overflow = 'hidden';
-            modalContent.scrollLeft = index * window.innerWidth;
+
+        /* Aplica FLIP: dados los rects previos, mide los nuevos,
+           aplica una transform que visualmente los regresa a la posición previa,
+           y luego los deja transicionar a su estado real en el siguiente frame. */
+        function playFlip(snapshots) {
+            // Invert: medir nueva posición y aplicar transform inverso
+            snapshots.forEach(s => {
+                const newRect = s.img.getBoundingClientRect();
+                const dx = s.rect.left - newRect.left;
+                const dy = s.rect.top - newRect.top;
+                const sx = s.rect.width / newRect.width;
+                const sy = s.rect.height / newRect.height;
+
+                // Aplicamos el transform SIN transición (de golpe lo ponemos donde estaba)
+                s.img.style.transition = 'none';
+                s.img.style.transformOrigin = 'top left';
+                s.img.style.transform = `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`;
+            });
+
+            // Forzar reflow
+            scrollContainer.offsetHeight;
+
+            // Play: siguiente frame, quitamos el transform y dejamos que transicione
+            requestAnimationFrame(() => {
+                snapshots.forEach(s => {
+                    s.img.style.transition = '';
+                    s.img.style.transform = '';
+                });
+            });
+
+            // Al terminar, limpiamos estilos inline
+            setTimeout(() => {
+                snapshots.forEach(s => {
+                    s.img.style.transition = '';
+                    s.img.style.transform = '';
+                    s.img.style.transformOrigin = '';
+                });
+            }, DURATION + 50);
         }
-        
+
+        /* ---------- OPEN MODAL ---------- */
+
+        function openModal(index, element) {
+            if (isAnimating || isModalOpen) return;
+            isAnimating = true;
+
+            // 1) FIRST: tomar fotos de todas las imágenes en su estado actual (grilla)
+            const snapshots = snapshotSlides();
+
+            // 2) LAST: cambiar al estado modal (añadir clase)
+            document.body.classList.add('modal-open');
+            scrollContainer.classList.add('is-modal');
+            modalBackdrop.classList.add('active');
+            modalClose.classList.add('visible');
+
+            // 3) Una vez aplicada la nueva layout, necesitamos que el slide clickeado
+            //    esté centrado. Scrolleamos INSTANTE a esa posición.
+            //    (Cada slide en modo modal ocupa 100vw, y están en orden DOM → el índice es directo)
+            const targetScrollLeft = element.offsetLeft;
+            scrollContainer.scrollLeft = targetScrollLeft;
+
+            // 4) INVERT + PLAY: aplicamos FLIP a todas las imágenes
+            playFlip(snapshots);
+
+            setTimeout(() => {
+                isAnimating = false;
+                isModalOpen = true;
+            }, DURATION);
+        }
+
+        /* ---------- CLOSE MODAL ---------- */
+
         function closeModal() {
-            modalOverlay.classList.remove('active');
-            document.body.style.overflow = 'hidden';
-        }
-        
-        document.addEventListener('keydown', (e) => {
-            if (modalOverlay.classList.contains('active')) {
-                if (e.key === 'Escape') {
-                    closeModal();
-                } else if (e.key === 'ArrowRight' && currentSlide < projects.length - 1) {
-                    currentSlide++;
-                    modalContent.scrollLeft = currentSlide * window.innerWidth;
-                } else if (e.key === 'ArrowLeft' && currentSlide > 0) {
-                    currentSlide--;
-                    modalContent.scrollLeft = currentSlide * window.innerWidth;
-                }
+            if (!isModalOpen || isAnimating) return;
+            isAnimating = true;
+
+            // Cuál es el slide visible (centrado) ahora mismo en el modal
+            const visibleSlide = getVisibleSlide();
+
+            // 1) FIRST: snapshot del estado actual (modal)
+            const snapshots = snapshotSlides();
+
+            // 2) LAST: volver al estado grilla
+            scrollContainer.classList.remove('is-modal');
+            document.body.classList.remove('modal-open');
+            modalBackdrop.classList.remove('active');
+            modalClose.classList.remove('visible');
+
+            // 3) Necesitamos que el slide que estaba visible en el modal
+            //    quede visible también en la grilla
+            if (visibleSlide) {
+                // Centrar ese slide en la grilla
+                const targetCenter = visibleSlide.offsetLeft + visibleSlide.offsetWidth / 2;
+                scrollContainer.scrollLeft = targetCenter - window.innerWidth / 2;
             }
+
+            // 4) INVERT + PLAY
+            playFlip(snapshots);
+
+            setTimeout(() => {
+                isAnimating = false;
+                isModalOpen = false;
+            }, DURATION);
+        }
+
+        function getVisibleSlide() {
+            const slides = scrollContainer.querySelectorAll('.project-slide');
+            const center = window.innerWidth / 2;
+            let closest = null;
+            let closestDist = Infinity;
+            slides.forEach(s => {
+                const r = s.getBoundingClientRect();
+                const d = Math.abs((r.left + r.right) / 2 - center);
+                if (d < closestDist) {
+                    closestDist = d;
+                    closest = s;
+                }
+            });
+            return closest;
+        }
+
+        /* ---------- CONTROLES ---------- */
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
         });
-        
-        modalContent.addEventListener('scroll', () => {
-            currentSlide = Math.round(modalContent.scrollLeft / window.innerWidth);
+
+        // Click en cualquier parte del backdrop cierra
+        modalBackdrop.addEventListener('click', () => {
+            closeModal();
         });
-        
-        // Inicializar
-        createHomeSlides();
-        createModalSlides();
-        updateLogo();
+
+        // Prevenimos que el click en info propague (si no, cerraría)
+        // Pero como el click en info también debe cerrar, lo dejamos así.
     </script>
+
 </body>
 </html>
