@@ -58,7 +58,7 @@
         }
         .nav a {
             color: #00000066; text-decoration: none;
-            font-size: 14px; font-weight: 500;
+            font-size: 14px; font-weight: 100;
             transition: color 0.3s; text-align: right;
         }
         .nav a:hover { color: #000; }
@@ -90,7 +90,6 @@
         /* ======================= PROJECT SLIDE (grilla normal) ======================= */
 
         .project-slide {
-            position: relative;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -99,7 +98,8 @@
             margin-right: 30px;
             transition: margin 0.7s cubic-bezier(0.22, 1, 0.36, 1);
         }
-        .project-slide:hover .project-slide-image {
+        /* Hover scale SOLO en modo grilla */
+        .scroll-container:not(.is-modal) .project-slide:hover .project-slide-image {
             transform: scale(1.03);
         }
 
@@ -132,23 +132,25 @@
 
         /* Info del proyecto (sólo visible en modo modal) */
         .project-slide-info {
-            position: absolute;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            min-width: 240px;
-            max-width: 280px;
+            flex-shrink: 0;
+            /* En modo grilla, la info ocupa 0 espacio para no afectar el layout */
+            width: 0;
+            overflow: hidden;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.35s ease;
-            /* posición por defecto fuera de flujo */
-            left: 10vw;
-            top: 50%;
-            transform: translateY(-50%);
+            /* Al cerrar: desaparece INSTANTE (opacity sin transición) */
+            transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+            white-space: normal;
         }
         .scroll-container.is-modal .project-slide-info {
+            width: 240px;
             opacity: 1;
-            transition-delay: 0.35s;
+            /* Al abrir: aparece con delay para coincidir con el FLIP */
+            transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+                        opacity 0.35s ease 0.35s;
         }
 
         .project-slide-info h2 {
@@ -285,6 +287,7 @@
         const scrollContainer = document.getElementById('scrollContainer');
         const modalBackdrop = document.getElementById('modalBackdrop');
         const modalClose = document.getElementById('modalClose');
+        const projectName = document.getElementById('projectName');
 
         let isAnimating = false;
         let isModalOpen = false;
@@ -435,6 +438,20 @@
 
         function getVisibleSlide() {
             const slides = scrollContainer.querySelectorAll('.project-slide');
+            if (!slides.length) return null;
+
+            // 🔑 Si el scroll está al final (o casi), el último slide es el visible,
+            // aunque geométricamente no llegue al centro del viewport
+            // (por el padding y márgenes la última imagen queda un poco a la derecha).
+            const maxScroll = scrollContainer.scrollWidth - scrollContainer.clientWidth;
+            if (maxScroll > 0 && scrollContainer.scrollLeft >= maxScroll - 2) {
+                return slides[slides.length - 1];
+            }
+            // Análogo para el inicio
+            if (scrollContainer.scrollLeft <= 2) {
+                return slides[0];
+            }
+
             const center = window.innerWidth / 2;
             let closest = null;
             let closestDist = Infinity;
@@ -449,19 +466,64 @@
             return closest;
         }
 
+        /* ---------- NOMBRE DEL PROYECTO (aparece abajo del logo al scrollear) ---------- */
+        function updateProjectName() {
+            // Solo mostramos el nombre en modo grilla (no en modal, porque ya aparece la info)
+            if (isModalOpen) {
+                projectName.classList.remove('visible');
+                return;
+            }
+            const visible = getVisibleSlide();
+            if (!visible) {
+                projectName.classList.remove('visible');
+                return;
+            }
+            const idx = parseInt(visible.dataset.index, 10);
+            const p = projects[idx];
+            if (!p) {
+                projectName.classList.remove('visible');
+                return;
+            }
+            projectName.textContent = p.title;
+            projectName.classList.add('visible');
+        }
+
+        // Throttle con rAF para rendimiento
+        let scrollTicking = false;
+        scrollContainer.addEventListener('scroll', () => {
+            if (!scrollTicking) {
+                requestAnimationFrame(() => {
+                    updateProjectName();
+                    scrollTicking = false;
+                });
+                scrollTicking = true;
+            }
+        });
+
+        // Estado inicial al cargar
+        updateProjectName();
+
         /* ---------- CONTROLES ---------- */
 
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') closeModal();
         });
 
-        // Click en cualquier parte del backdrop cierra
-        modalBackdrop.addEventListener('click', () => {
-            closeModal();
+        // 🔑 Cerrar al hacer click en CUALQUIER parte del modal
+        // El scrollContainer está encima del backdrop en modo modal, así que el
+        // listener va aquí. Usamos el flag isModalOpen para que en modo grilla
+        // no interfiera con los clicks normales sobre los slides.
+        scrollContainer.addEventListener('click', () => {
+            if (isModalOpen && !isAnimating) {
+                closeModal();
+            }
         });
 
-        // Prevenimos que el click en info propague (si no, cerraría)
-        // Pero como el click en info también debe cerrar, lo dejamos así.
+        modalBackdrop.addEventListener('click', () => {
+            if (isModalOpen && !isAnimating) {
+                closeModal();
+            }
+        });
     </script>
 
 </body>
