@@ -1,530 +1,59 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nathan Mora</title>
-
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #ffffff;
-            color: #000;
-            overflow: hidden;
-            height: 100vh;
-            cursor: none;
-        }
-
-        *, *::before, *::after { cursor: none !important; }
-
-        .custom-cursor {
-            position: fixed; top: 0; left: 0;
-            width: 45px; height: 45px;
-            background: rgba(180, 180, 180, 0.35);
-            border-radius: 50%;
-            pointer-events: none;
-            transform: translate(-50%, -50%);
-            transition: transform 0.08s ease-out, width 0.2s ease, height 0.2s ease;
-            z-index: 9999;
-            backdrop-filter: blur(6px);
-        }
-
-        .header {
-            position: fixed;
-            top: 0; left: 0; right: 0;
-            padding: 30px 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            z-index: 50;
-            background: #ffffff;
-            transition: opacity 0.4s ease;
-        }
-        .header > div:first-child { margin-left: 240px; }
-        .logo { font-size: 40px; font-weight: 300; }
-        .project-name {
-            font-size: 20px; font-weight: 400; color: #999;
-            margin-top: 8px;
-            transition: opacity 0.3s ease;
-            opacity: 0; min-height: 28px;
-        }
-        .project-name.visible { opacity: 1; }
-
-        .nav {
-            display: flex; flex-direction: column;
-            gap: 4px; margin-top: 60px; margin-right: 340px;
-        }
-        .nav a {
-            color: #00000066; text-decoration: none;
-            font-size: 14px; font-weight: 100;
-            transition: color 0.3s; text-align: right;
-        }
-        .nav a:hover { color: #000; }
-
-        /* ======================= SCROLL-CONTAINER (la galería compartida) ======================= */
-
-        .scroll-container {
-            display: flex;
-            align-items: center;
-            height: 100vh;
-            overflow-x: scroll;
-            overflow-y: hidden;
-            padding-top: 90px;
-            padding-left: 120px;
-            padding-right: 120px;
-            -webkit-overflow-scrolling: touch;
-            white-space: nowrap;
-            scroll-behavior: auto; /* controlamos el scroll manualmente */
-        }
-        .scroll-container::-webkit-scrollbar { display: none; }
-
-        /* Cuando está en modo modal, la galería cambia comportamiento */
-        .scroll-container.is-modal {
-            scroll-snap-type: x mandatory;
-            padding-left: 0;
-            padding-right: 0;
-        }
-
-        /* ======================= PROJECT SLIDE (grilla normal) ======================= */
-
-        .project-slide {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            cursor: pointer;
-            margin-right: 30px;
-            transition: margin 0.7s cubic-bezier(0.22, 1, 0.36, 1);
-        }
-        /* Hover scale SOLO en modo grilla */
-        .scroll-container:not(.is-modal) .project-slide:hover .project-slide-image {
-            transform: scale(1.03);
-        }
-
-        .project-slide-image {
-            height: 62vh;
-            width: auto;
-            display: block;
-            border-radius: 8px;
-            transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-                        height 0.7s cubic-bezier(0.22, 1, 0.36, 1);
-            will-change: transform, height;
-        }
-
-        /* ======================= MODO MODAL: slide expandido con info ======================= */
-
-        .scroll-container.is-modal .project-slide {
-            width: 100vw;
-            height: 100vh;
-            margin-right: 0;
-            scroll-snap-align: center;
-            justify-content: center;
-            gap: 80px;
-            padding: 0 10vw;
-        }
-
-        .scroll-container.is-modal .project-slide-image {
-            height: 75vh;
-            max-width: 50vw;
-        }
-
-        /* Info del proyecto (sólo visible en modo modal) */
-        .project-slide-info {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            flex-shrink: 0;
-            /* En modo grilla, la info ocupa 0 espacio para no afectar el layout */
-            width: 0;
-            overflow: hidden;
-            opacity: 0;
-            pointer-events: none;
-            /* Al cerrar: desaparece INSTANTE (opacity sin transición) */
-            transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1);
-            white-space: normal;
-        }
-        .scroll-container.is-modal .project-slide-info {
-            width: 240px;
-            opacity: 1;
-            /* Al abrir: aparece con delay para coincidir con el FLIP */
-            transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-                        opacity 0.35s ease 0.35s;
-        }
-
-        .project-slide-info h2 {
-            font-size: 22px; font-weight: 700;
-            margin-bottom: 8px; color: #000;
-        }
-        .project-slide-info .meta {
-            font-size: 16px; font-weight: 400;
-            color: #000; line-height: 1.4;
-        }
-        .project-slide-info .year {
-            font-size: 16px; color: #000; margin-top: 24px;
-        }
-        .project-slide-info .credits {
-            margin-top: 40px;
-            font-size: 14px; color: #999; line-height: 1.6;
-        }
-
-        /* ======================= FONDO BLANCO + CERRAR ======================= */
-
-        .modal-backdrop {
-            position: fixed;
-            inset: 0;
-            background: #ffffff;
-            z-index: 40; /* detrás de la galería pero sobre otro contenido */
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-        }
-        .modal-backdrop.active {
-            opacity: 1;
-        }
-
-        .modal-close {
-            position: fixed;
-            top: 40px; right: 60px;
-            font-size: 40px; color: #000;
-            z-index: 110;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-            line-height: 1;
-            font-weight: 200;
-            cursor: pointer;
-        }
-        .modal-close.visible {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        /* Cuando entramos en modal, subimos la galería sobre el backdrop */
-        .scroll-container.is-modal {
-            z-index: 60;
-            position: relative;
-        }
-
-        /* Ocultamos header en modo modal */
-        body.modal-open .header {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        @media (max-width: 768px) {
-            body { cursor: auto; }
-            .custom-cursor { display: none; }
-            .scroll-container.is-modal .project-slide {
-                flex-direction: column;
-                gap: 30px;
-                padding: 80px 20px 20px;
-            }
-            .scroll-container.is-modal .project-slide-image {
-                max-width: 90vw;
-                height: auto;
-                max-height: 60vh;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nathan Mora</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
-
 <body>
 
-    <div class="custom-cursor"></div>
+  <!-- cursor custom (solo desktop) -->
+  <div class="custom-cursor" aria-hidden="true"></div>
 
-    <header class="header">
-        <div>
-            <div class="logo">Nathan Mora</div>
-            <div class="project-name" id="projectName"></div>
-        </div>
-        <nav class="nav">
-            <a href="#">Quién soy</a>
-            <a href="#">LinkedIn</a>
-            <a href="#">Correo</a>
-        </nav>
-    </header>
+  <!-- header fijo -->
+  <header class="header" role="banner">
+    <div>
+      <div class="header__logo">Nathan Mora</div>
+      <div class="header__project" id="projectName"></div>
+    </div>
+    <nav class="nav" role="navigation" aria-label="Navegación principal">
+      <a class="nav__link" href="#about">Quién soy</a>
+      <a class="nav__link" href="https://linkedin.com" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+      <a class="nav__link" href="mailto:tu@email.com">Correo</a>
+    </nav>
+  </header>
 
-    <div class="modal-backdrop" id="modalBackdrop"></div>
-    <div class="scroll-container" id="scrollContainer"></div>
-    <div class="modal-close" id="modalClose" onclick="closeModal()">&times;</div>
+  <!-- backdrop del modal -->
+  <div class="modal-backdrop" id="modalBackdrop" aria-hidden="true"></div>
+  <button class="modal-close" id="modalClose" aria-label="Cerrar modal">&times;</button>
 
-    <script>
-        /* ---------- CURSOR ---------- */
-        const cursor = document.querySelector('.custom-cursor');
+  <!-- galería principal -->
+  <main class="scroll-container" id="scrollContainer" role="region" aria-label="Proyectos"></main>
 
-        document.addEventListener('mousemove', (e) => {
-            cursor.style.top = e.clientY + 'px';
-            cursor.style.left = e.clientX + 'px';
-        });
+  <!-- sección "Quién soy" (al final, se alcanza con scroll o con el link del header) -->
+  <section class="section" id="about" aria-label="Sobre mí">
+    <div class="section__eyebrow">Sobre mí</div>
+    <h1 class="section__title">Diseño de interfaces<br>con enfoque en claridad y ritmo visual.</h1>
+    <div class="section__body">
+      <p>
+        Soy Nathan Mora, diseñador de interfaces y experiencia de usuario.
+        Trabajo en proyectos digitales donde la forma sigue a la función,
+        con atención a los detalles tipográficos, la jerarquía visual y
+        la coherencia del sistema.
+      </p>
+      <p>
+        Esta galería muestra una selección de trabajos recientes —
+        cada proyecto responde a un desafío específico de comunicación
+        visual, orientado a productos reales y equipos multidisciplinares.
+      </p>
+    </div>
+    <div class="section__links">
+      <a class="section__link" href="mailto:tu@email.com">Contactar por correo</a>
+      <a class="section__link section__link--ghost" href="https://linkedin.com" target="_blank" rel="noopener noreferrer">Ver LinkedIn</a>
+    </div>
+  </section>
 
-        document.addEventListener('mouseover', (e) => {
-            if (e.target.closest('a, .project-slide, .modal-close')) {
-                cursor.style.transform = 'translate(-50%, -50%) scale(0.4)';
-            } else {
-                cursor.style.transform = 'translate(-50%, -50%) scale(1)';
-            }
-        });
-
-        document.addEventListener('mousedown', () => {
-            cursor.style.transform = 'translate(-50%, -50%) scale(0.8)';
-        });
-        document.addEventListener('mouseup', () => {
-            cursor.style.transform = 'translate(-50%, -50%) scale(1)';
-        });
-
-        /* ---------- DATA ---------- */
-        const projects = [
-            { title: "App 1", image: "images/App1.png", category: "Interface Design", client: "Cliente 1", year: "2024", team: ["Nathan Mora"] },
-            { title: "App 2", image: "images/App2.png", category: "Interface Design", client: "Cliente 2", year: "2024", team: ["Nathan Mora"] },
-            { title: "App 3", image: "images/App2.png", category: "Interface Design", client: "Cliente 3", year: "2024", team: ["Nathan Mora"] },
-            { title: "App 4", image: "images/App1.png", category: "Interface Design", client: "Cliente 4", year: "2024", team: ["Nathan Mora"] },
-            { title: "App 5", image: "images/App2.png", category: "Interface Design", client: "Cliente 5", year: "2024", team: ["Nathan Mora"] },
-            { title: "App 6", image: "images/App2.png", category: "Interface Design", client: "Cliente 6", year: "2024", team: ["Nathan Mora"] }
-        ];
-
-        const scrollContainer = document.getElementById('scrollContainer');
-        const modalBackdrop = document.getElementById('modalBackdrop');
-        const modalClose = document.getElementById('modalClose');
-        const projectName = document.getElementById('projectName');
-
-        let isAnimating = false;
-        let isModalOpen = false;
-        const DURATION = 700; // ms, debe coincidir con CSS
-
-        /* ---------- RENDER GALERÍA (grilla compartida) ---------- */
-        projects.forEach((p, i) => {
-            const slide = document.createElement('div');
-            slide.className = 'project-slide';
-            slide.dataset.index = i;
-            slide.innerHTML = `
-                <div class="project-slide-info">
-                    <h2>${p.title}</h2>
-                    <div class="meta">${p.category}<br>${p.client}</div>
-                    <div class="year">${p.year}</div>
-                    <div class="credits">
-                        ${p.team.map(t => `<div>${t}</div>`).join('')}
-                    </div>
-                </div>
-                <img src="${p.image}" class="project-slide-image" alt="${p.title}">
-            `;
-            slide.onclick = () => {
-                if (!isModalOpen && !isAnimating) openModal(i, slide);
-            };
-            scrollContainer.appendChild(slide);
-        });
-
-        /* ---------- FLIP helpers ---------- */
-
-        /* Toma una "foto" de cada imagen: su rect actual */
-        function snapshotSlides() {
-            const slides = scrollContainer.querySelectorAll('.project-slide');
-            const snapshots = [];
-            slides.forEach(s => {
-                const img = s.querySelector('.project-slide-image');
-                snapshots.push({
-                    slide: s,
-                    img,
-                    rect: img.getBoundingClientRect()
-                });
-            });
-            return snapshots;
-        }
-
-        /* Aplica FLIP: dados los rects previos, mide los nuevos,
-           aplica una transform que visualmente los regresa a la posición previa,
-           y luego los deja transicionar a su estado real en el siguiente frame. */
-        function playFlip(snapshots) {
-            // Invert: medir nueva posición y aplicar transform inverso
-            snapshots.forEach(s => {
-                const newRect = s.img.getBoundingClientRect();
-                const dx = s.rect.left - newRect.left;
-                const dy = s.rect.top - newRect.top;
-                const sx = s.rect.width / newRect.width;
-                const sy = s.rect.height / newRect.height;
-
-                // Aplicamos el transform SIN transición (de golpe lo ponemos donde estaba)
-                s.img.style.transition = 'none';
-                s.img.style.transformOrigin = 'top left';
-                s.img.style.transform = `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`;
-            });
-
-            // Forzar reflow
-            scrollContainer.offsetHeight;
-
-            // Play: siguiente frame, quitamos el transform y dejamos que transicione
-            requestAnimationFrame(() => {
-                snapshots.forEach(s => {
-                    s.img.style.transition = '';
-                    s.img.style.transform = '';
-                });
-            });
-
-            // Al terminar, limpiamos estilos inline
-            setTimeout(() => {
-                snapshots.forEach(s => {
-                    s.img.style.transition = '';
-                    s.img.style.transform = '';
-                    s.img.style.transformOrigin = '';
-                });
-            }, DURATION + 50);
-        }
-
-        /* ---------- OPEN MODAL ---------- */
-
-        function openModal(index, element) {
-            if (isAnimating || isModalOpen) return;
-            isAnimating = true;
-
-            // 1) FIRST: tomar fotos de todas las imágenes en su estado actual (grilla)
-            const snapshots = snapshotSlides();
-
-            // 2) LAST: cambiar al estado modal (añadir clase)
-            document.body.classList.add('modal-open');
-            scrollContainer.classList.add('is-modal');
-            modalBackdrop.classList.add('active');
-            modalClose.classList.add('visible');
-
-            // 3) Una vez aplicada la nueva layout, necesitamos que el slide clickeado
-            //    esté centrado. Scrolleamos INSTANTE a esa posición.
-            //    (Cada slide en modo modal ocupa 100vw, y están en orden DOM → el índice es directo)
-            const targetScrollLeft = element.offsetLeft;
-            scrollContainer.scrollLeft = targetScrollLeft;
-
-            // 4) INVERT + PLAY: aplicamos FLIP a todas las imágenes
-            playFlip(snapshots);
-
-            setTimeout(() => {
-                isAnimating = false;
-                isModalOpen = true;
-            }, DURATION);
-        }
-
-        /* ---------- CLOSE MODAL ---------- */
-
-        function closeModal() {
-            if (!isModalOpen || isAnimating) return;
-            isAnimating = true;
-
-            // Cuál es el slide visible (centrado) ahora mismo en el modal
-            const visibleSlide = getVisibleSlide();
-
-            // 1) FIRST: snapshot del estado actual (modal)
-            const snapshots = snapshotSlides();
-
-            // 2) LAST: volver al estado grilla
-            scrollContainer.classList.remove('is-modal');
-            document.body.classList.remove('modal-open');
-            modalBackdrop.classList.remove('active');
-            modalClose.classList.remove('visible');
-
-            // 3) Necesitamos que el slide que estaba visible en el modal
-            //    quede visible también en la grilla
-            if (visibleSlide) {
-                // Centrar ese slide en la grilla
-                const targetCenter = visibleSlide.offsetLeft + visibleSlide.offsetWidth / 2;
-                scrollContainer.scrollLeft = targetCenter - window.innerWidth / 2;
-            }
-
-            // 4) INVERT + PLAY
-            playFlip(snapshots);
-
-            setTimeout(() => {
-                isAnimating = false;
-                isModalOpen = false;
-            }, DURATION);
-        }
-
-        function getVisibleSlide() {
-            const slides = scrollContainer.querySelectorAll('.project-slide');
-            if (!slides.length) return null;
-
-            // 🔑 Si el scroll está al final (o casi), el último slide es el visible,
-            // aunque geométricamente no llegue al centro del viewport
-            // (por el padding y márgenes la última imagen queda un poco a la derecha).
-            const maxScroll = scrollContainer.scrollWidth - scrollContainer.clientWidth;
-            if (maxScroll > 0 && scrollContainer.scrollLeft >= maxScroll - 2) {
-                return slides[slides.length - 1];
-            }
-            // Análogo para el inicio
-            if (scrollContainer.scrollLeft <= 2) {
-                return slides[0];
-            }
-
-            const center = window.innerWidth / 2;
-            let closest = null;
-            let closestDist = Infinity;
-            slides.forEach(s => {
-                const r = s.getBoundingClientRect();
-                const d = Math.abs((r.left + r.right) / 2 - center);
-                if (d < closestDist) {
-                    closestDist = d;
-                    closest = s;
-                }
-            });
-            return closest;
-        }
-
-        /* ---------- NOMBRE DEL PROYECTO (aparece abajo del logo al scrollear) ---------- */
-        function updateProjectName() {
-            // Solo mostramos el nombre en modo grilla (no en modal, porque ya aparece la info)
-            if (isModalOpen) {
-                projectName.classList.remove('visible');
-                return;
-            }
-            const visible = getVisibleSlide();
-            if (!visible) {
-                projectName.classList.remove('visible');
-                return;
-            }
-            const idx = parseInt(visible.dataset.index, 10);
-            const p = projects[idx];
-            if (!p) {
-                projectName.classList.remove('visible');
-                return;
-            }
-            projectName.textContent = p.title;
-            projectName.classList.add('visible');
-        }
-
-        // Throttle con rAF para rendimiento
-        let scrollTicking = false;
-        scrollContainer.addEventListener('scroll', () => {
-            if (!scrollTicking) {
-                requestAnimationFrame(() => {
-                    updateProjectName();
-                    scrollTicking = false;
-                });
-                scrollTicking = true;
-            }
-        });
-
-        // Estado inicial al cargar
-        updateProjectName();
-
-        /* ---------- CONTROLES ---------- */
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closeModal();
-        });
-
-        // 🔑 Cerrar al hacer click en CUALQUIER parte del modal
-        // El scrollContainer está encima del backdrop en modo modal, así que el
-        // listener va aquí. Usamos el flag isModalOpen para que en modo grilla
-        // no interfiera con los clicks normales sobre los slides.
-        scrollContainer.addEventListener('click', () => {
-            if (isModalOpen && !isAnimating) {
-                closeModal();
-            }
-        });
-
-        modalBackdrop.addEventListener('click', () => {
-            if (isModalOpen && !isAnimating) {
-                closeModal();
-            }
-        });
-    </script>
-
+  <script src="js/main.js"></script>
 </body>
 </html>
