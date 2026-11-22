@@ -44,51 +44,51 @@
   // ---- datos ----
   const projects = [
     {
-      title: 'App 1',
-      image: 'images/App3.png',
-      category: 'Interface Design',
-      client: 'Cliente 1',
-      year: '2024',
+      title: 'Knob Radio',
+      image: 'images/knob-1.jpg',
+      category: 'App para macOS',
+      client: 'Radio en vivo en la barra de menú',
+      year: '2026',
       team: ['Nathan Mora']
     },
     {
-      title: 'App 2',
-      image: 'images/App2.png',
-      category: 'Interface Design',
-      client: 'Cliente 2',
-      year: '2024',
+      title: 'Knob Radio',
+      image: 'images/knob-2.jpg',
+      category: 'App para macOS',
+      client: 'Estaciones de todo el mundo',
+      year: '2026',
       team: ['Nathan Mora']
     },
     {
-      title: 'App 3',
-      image: 'images/App3.png',
-      category: 'Interface Design',
-      client: 'Cliente 3',
-      year: '2024',
+      title: 'Knob Radio',
+      image: 'images/knob-3.jpg',
+      category: 'App para macOS',
+      client: 'Teclas multimedia y reconexión',
+      year: '2026',
       team: ['Nathan Mora']
     },
     {
-      title: 'App 4',
-      image: 'images/App2.png',
-      category: 'Interface Design',
-      client: 'Cliente 4',
-      year: '2024',
+      title: 'Radix',
+      image: 'images/radix-1.jpg',
+      category: 'App para iOS',
+      client: 'Convertidor de bases numéricas',
+      year: '2025',
       team: ['Nathan Mora']
     },
     {
-      title: 'App 5',
-      image: 'images/App2.png',
-      category: 'Interface Design',
-      client: 'Cliente 5',
-      year: '2024',
+      title: 'Radix',
+      image: 'images/radix-2.jpg',
+      category: 'App para iOS',
+      client: 'Explica cada conversión paso a paso',
+      year: '2025',
       team: ['Nathan Mora']
     },
     {
-      title: 'App 6',
-      image: 'images/App3.png',
-      category: 'Interface Design',
-      client: 'Cliente 6',
-      year: '2024',
+      title: 'Radix',
+      image: 'images/radix-3.jpg',
+      category: 'App para iOS',
+      client: 'Ejercicios para practicar',
+      year: '2025',
       team: ['Nathan Mora']
     }
   ];
